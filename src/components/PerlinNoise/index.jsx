@@ -6,11 +6,10 @@ const PerlinNoise = () => {
 const canvasRef = useRef()
 
   const Sketch = p5 => {
-    const inc = 0.005
+    const inc = 0.002
 
     p5.setup = () => {
-      p5.createCanvas(800,800)
-      // (p5.windowWidth, p5.windowHeight)
+      p5.createCanvas(p5.windowWidth, p5.windowHeight)
       p5.pixelDensity(1)
     }
 
@@ -32,7 +31,7 @@ const canvasRef = useRef()
         }
         yoff += inc
       }
-
+      p5.noiseDetail(12, .5)
       p5.updatePixels()
 
       // start += inc
