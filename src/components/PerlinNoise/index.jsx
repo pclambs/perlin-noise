@@ -6,7 +6,7 @@ const PerlinNoise = () => {
 const canvasRef = useRef()
 
   const Sketch = p5 => {
-    let inc = 0.01
+    const inc = 0.005
 
     p5.setup = () => {
       p5.createCanvas(800,800)
@@ -15,16 +15,22 @@ const canvasRef = useRef()
     }
 
     p5.draw = () => {
+      let yoff = 0
+      
       p5.loadPixels()
-      for (let x = 0; x < p5.width; x++) {
-        for (let y = 0; y < p5.height; y++) {
+      for (let y = 0; y < p5.height; y++) {
+        let xoff = 0
+        for (let x = 0; x < p5.width; x++) {
           let index = (x + y * p5.width) * 4
-          let r = p5.random(255)
+          let r = p5.noise(xoff, yoff) * 255
           p5.pixels[index + 0] = r
           p5.pixels[index + 1] = r
           p5.pixels[index + 2] = r
           p5.pixels[index + 3] = 255
+
+          xoff += inc
         }
+        yoff += inc
       }
 
       p5.updatePixels()
