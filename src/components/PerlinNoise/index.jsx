@@ -6,31 +6,30 @@ const PerlinNoise = () => {
 const canvasRef = useRef()
 
   const Sketch = p5 => {
-    // let xoff1 = 0
-    // let xoff2 = 10000
     let inc = 0.01
-    let start = 0
 
     p5.setup = () => {
-      p5.createCanvas(p5.windowWidth, p5.windowHeight)
+      p5.createCanvas(800,800)
+      // (p5.windowWidth, p5.windowHeight)
+      p5.pixelDensity(1)
     }
 
     p5.draw = () => {
-      p5.background(51)
-      p5.stroke(255)
-      p5.noFill()
-      p5.beginShape()
-      let xoff = start
+      p5.loadPixels()
       for (let x = 0; x < p5.width; x++) {
-        p5.stroke(255)
-        let y = p5.noise(xoff) * p5.height
-        p5.vertex(x, y)
-
-        xoff += inc
+        for (let y = 0; y < p5.height; y++) {
+          let index = (x + y * p5.width) * 4
+          let r = p5.random(255)
+          p5.pixels[index + 0] = r
+          p5.pixels[index + 1] = r
+          p5.pixels[index + 2] = r
+          p5.pixels[index + 3] = 255
+        }
       }
-      p5.endShape()
 
-      start += inc
+      p5.updatePixels()
+
+      // start += inc
 
       // p5.noLoop()
 
