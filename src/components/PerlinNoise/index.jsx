@@ -6,7 +6,7 @@ import './PerlinNoise.css'
 const PerlinNoise = () => {
   const canvasRef = useRef()
   const Sketch = p5 => {
-    const inc = 0.005
+    const inc = .2
     const scl = 10
     let cols, rows
     let zoff = 0
@@ -19,14 +19,17 @@ const PerlinNoise = () => {
         this.vel = p5.createVector(0,0)
         this.acc = p5.createVector(0,0)
         this.maxspeed = 4
-        this.prevPos = this.pos.copy()
+        this.historySize = 5
+        this.history = new Array(this.historySize)
+        this.historyIndex = 0
       }
-
+      
       update() {
         this.vel.add(this.acc)
         this.vel.limit(this.maxspeed)
         this.pos.add(this.vel)
         this.acc.mult(0)
+        this.addHistory(this.pos)
       }
 
       follow(vectors) {
@@ -41,39 +44,52 @@ const PerlinNoise = () => {
         this.acc.add(force)
       }
 
-      updatePrev() {
-        this.prevPos.x = this.pos.x
-        this.prevPos.y = this.pos.y
-      }
-
-      show() {
-        p5.stroke(250, 5)
-        p5.strokeWeight(1)
-        p5.line(this.pos.x, this.pos.y, this.prevPos.x, this.prevPos.y)
-        // p5.point(this.pos.x, this.pos.y)
-        this.updatePrev()
-      }
-
       edges() {
+        let wrapped = false
+      
         if (this.pos.x > p5.width) {
           this.pos.x = 0
-          this.updatePrev()
-        }
-        if (this.pos.x < 0) {
+          wrapped = true
+        } else if (this.pos.x < 0) {
           this.pos.x = p5.width
-          this.updatePrev()
+          wrapped = true
         }
+      
         if (this.pos.y > p5.height) {
           this.pos.y = 0
-          this.updatePrev()
-        }
-        if (this.pos.y < 0) {
+          wrapped = true
+        } else if (this.pos.y < 0) {
           this.pos.y = p5.height
-          this.updatePrev()
+          wrapped = true
+        }
+      
+        if (wrapped) {
+          this.history = new Array(this.historySize)
+          this.historyIndex = 0
         }
       }
-    }
 
+      addHistory(position) {
+        this.history[this.historyIndex] = position.copy()
+        this.historyIndex = (this.historyIndex + 1) % this.historySize
+      }
+      
+      
+      show() {
+        p5.stroke(255, 5)
+        this.p5.strokeWeight(1)
+        this.p5.noFill()  
+        p5.beginShape()
+        for (let i = this.historyIndex, count = 0; count < this.historySize; i = (i + 1) % this.historySize, count++) {
+          let pos = this.history[i]
+          if (pos) {
+            p5.vertex(pos.x, pos.y)
+          }
+        }
+        this.p5.endShape()
+      }
+    }
+    
     const particles = []
 
     let flowField = []
@@ -87,7 +103,7 @@ const PerlinNoise = () => {
       flowField = new Array(cols * rows)
 
       for (let i = 0; i < 10000; i++) {
-        particles.push(new Particle(p5));
+        particles.push(new Particle(p5))
       }
       p5.background(51)
     }
@@ -98,12 +114,15 @@ const PerlinNoise = () => {
         let xoff = 0
         for (let x = 0; x < cols; x++) {
           let index = x + y * cols
-          let angle = p5.noise(xoff, yoff, zoff) * p5.TWO_PI * 4
+          let angle = p5.noise(xoff, yoff, zoff) * p5.TWO_PI * 2
           let v = p5.createVector(p5.cos(angle), p5.sin(angle))
           flowField[index] = v
-          v.setMag(10)
+          v.setMag(20)
           xoff += inc
-          p5.stroke(0, 50)
+
+          // Uncomment to see the flow field vectors
+
+          // p5.stroke(0, 50)
           // p5.strokeWeight(1)
           // p5.push()
           // p5.translate(x * scl, y * scl)
@@ -131,12 +150,12 @@ const PerlinNoise = () => {
   }
 
   useEffect(() => {
-    const canvas = new p5(Sketch, canvasRef.current);
-    return () => canvas.remove();
+    const canvas = new p5(Sketch, canvasRef.current)
+    return () => canvas.remove()
   }, [])
   
 
-  return <div id="perlin-noise" />
+  return <div ref={canvasRef} id="perlin-noise" />
 }
 
 export default PerlinNoise
