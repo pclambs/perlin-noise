@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import p5, { Vector } from 'p5'
+import p5 from 'p5'
 import './PerlinNoise.css'
 
 
@@ -18,7 +18,8 @@ const PerlinNoise = () => {
         this.pos = p5.createVector(p5.random(p5.width), p5.random(p5.height))
         this.vel = p5.createVector(0,0)
         this.acc = p5.createVector(0,0)
-        this.maxspeed = 2
+        this.maxspeed = 4
+        this.prevPos = this.pos.copy()
       }
 
       update() {
@@ -40,17 +41,36 @@ const PerlinNoise = () => {
         this.acc.add(force)
       }
 
+      updatePrev() {
+        this.prevPos.x = this.pos.x
+        this.prevPos.y = this.pos.y
+      }
+
       show() {
-        p5.stroke(0)
+        p5.stroke(250, 5)
         p5.strokeWeight(1)
-        p5.point(this.pos.x, this.pos.y)
+        p5.line(this.pos.x, this.pos.y, this.prevPos.x, this.prevPos.y)
+        // p5.point(this.pos.x, this.pos.y)
+        this.updatePrev()
       }
 
       edges() {
-        if (this.pos.x > p5.width) this.pos.x = 0
-        if (this.pos.x < 0) this.pos.x = p5.width
-        if (this.pos.y > p5.height) this.pos.y = 0
-        if (this.pos.y < 0) this.pos.y = p5.height
+        if (this.pos.x > p5.width) {
+          this.pos.x = 0
+          this.updatePrev()
+        }
+        if (this.pos.x < 0) {
+          this.pos.x = p5.width
+          this.updatePrev()
+        }
+        if (this.pos.y > p5.height) {
+          this.pos.y = 0
+          this.updatePrev()
+        }
+        if (this.pos.y < 0) {
+          this.pos.y = p5.height
+          this.updatePrev()
+        }
       }
     }
 
@@ -69,10 +89,10 @@ const PerlinNoise = () => {
       for (let i = 0; i < 10000; i++) {
         particles.push(new Particle(p5));
       }
+      p5.background(51)
     }
 
     p5.draw = () => {
-      p5.background(225)
       let yoff = 0
       for (let y = 0; y < rows; y++) {
         let xoff = 0
@@ -80,10 +100,10 @@ const PerlinNoise = () => {
           let index = x + y * cols
           let angle = p5.noise(xoff, yoff, zoff) * p5.TWO_PI * 4
           let v = p5.createVector(p5.cos(angle), p5.sin(angle))
-          v.setMag(.05)
           flowField[index] = v
+          v.setMag(10)
           xoff += inc
-          // p5.stroke(0, 50)
+          p5.stroke(0, 50)
           // p5.strokeWeight(1)
           // p5.push()
           // p5.translate(x * scl, y * scl)
@@ -92,14 +112,14 @@ const PerlinNoise = () => {
           // p5.pop()
         }
         yoff += inc
-        zoff += 0.0002
+        zoff += 0.0001
       }
 
       for (var i = 0; i < particles.length; i++) {
         particles[i].follow(flowField)
         particles[i].update()
-        particles[i].show()
         particles[i].edges()
+        particles[i].show()
       }
 
       fr.html(p5.floor(p5.frameRate()))
