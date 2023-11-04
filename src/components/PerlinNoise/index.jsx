@@ -18,7 +18,7 @@ const PerlinNoise = () => {
         this.pos = p5.createVector(p5.random(p5.width), p5.random(p5.height))
         this.vel = p5.createVector(0,0)
         this.acc = p5.createVector(0,0)
-        this.maxspeed = 4
+        this.maxspeed = 2
       }
 
       update() {
@@ -42,7 +42,7 @@ const PerlinNoise = () => {
 
       show() {
         p5.stroke(0)
-        p5.strokeWeight(4)
+        p5.strokeWeight(1)
         p5.point(this.pos.x, this.pos.y)
       }
 
@@ -66,7 +66,7 @@ const PerlinNoise = () => {
 
       flowField = new Array(cols * rows)
 
-      for (let i = 0; i < 1000; i++) {
+      for (let i = 0; i < 10000; i++) {
         particles.push(new Particle(p5));
       }
     }
@@ -78,9 +78,9 @@ const PerlinNoise = () => {
         let xoff = 0
         for (let x = 0; x < cols; x++) {
           let index = x + y * cols
-          let angle = p5.noise(xoff, yoff, zoff) * p5.TWO_PI * 1
+          let angle = p5.noise(xoff, yoff, zoff) * p5.TWO_PI * 4
           let v = p5.createVector(p5.cos(angle), p5.sin(angle))
-          v.setMag(.1)
+          v.setMag(.05)
           flowField[index] = v
           xoff += inc
           // p5.stroke(0, 50)
@@ -92,7 +92,7 @@ const PerlinNoise = () => {
           // p5.pop()
         }
         yoff += inc
-        zoff += 0.0001
+        zoff += 0.0002
       }
 
       for (var i = 0; i < particles.length; i++) {
