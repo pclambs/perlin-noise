@@ -23,11 +23,14 @@ const PerlinNoise = () => {
       }
       
       update() {
-        this.vel.add(this.acc)
+        // Calculate the time step since the last frame
+        let timeStep = this.p5.deltaTime / 1000.0
+        this.vel.add(this.p5.constructor.Vector.mult(this.acc, timeStep))
         this.vel.limit(this.maxspeed)
-        this.pos.add(this.vel)
-        this.acc.mult(0)
-        this.addHistory(this.pos)
+        let nextPos = this.p5.constructor.Vector.add(this.pos, this.p5.constructor.Vector.mult(this.vel, timeStep))
+        this.acc.mult(0);
+        this.addHistory(nextPos)
+        this.pos = nextPos
       }
 
       follow(vectors) {
@@ -43,22 +46,16 @@ const PerlinNoise = () => {
       }
 
       edges() {
-        let buffer = this.historySize * this.vel.mag()
-      
-        if (this.pos.x > p5.width + buffer) {
-          this.pos.x = -buffer
-          this.clearHistory()
-        } else if (this.pos.x < -buffer) {
-          this.pos.x = p5.width + buffer
-          this.clearHistory()
+        if (this.pos.x > this.p5.width) {
+          this.pos.x = 0;
+        } else if (this.pos.x < 0) {
+          this.pos.x = this.p5.width;
         }
-      
-        if (this.pos.y > p5.height + buffer) {
-          this.pos.y = -buffer
-          this.clearHistory()
-        } else if (this.pos.y < -buffer) {
-          this.pos.y = p5.height + buffer
-          this.clearHistory()
+        
+        if (this.pos.y > this.p5.height) {
+          this.pos.y = 0;
+        } else if (this.pos.y < 0) {
+          this.pos.y = this.p5.height;
         }
       }
 
@@ -85,12 +82,10 @@ const PerlinNoise = () => {
             let opacity = p5.map(i, 0, this.historySize - 1, minOpacity, maxOpacity)
             let hue = p5.map(i, 0, this.historySize - 1, 0, 255) // change hue from start to end of trail
             this.p5.stroke(hue, 255, 255, opacity)
-            let nextIndex = (index + 1) % this.historySize;
+            let nextIndex = (index + 1) % this.historySize
             let nextPos = this.history[nextIndex]
             if (nextPos) {
-              let d = (pos.x - nextPos.x) ** 2 + (pos.y - nextPos.y) ** 2
-              let threshold = (p5.width / 2) ** 2
-              if (d < threshold) {
+              if (Math.abs(pos.x - nextPos.x) < this.p5.width / 2 && Math.abs(pos.y - nextPos.y) < this.p5.height / 2) {
                 this.p5.line(pos.x, pos.y, nextPos.x, nextPos.y)
               }
             }
