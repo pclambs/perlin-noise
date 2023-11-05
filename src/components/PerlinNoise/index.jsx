@@ -108,8 +108,8 @@ const PerlinNoise = () => {
     p5.setup = () => {
       p5.createCanvas(p5.windowWidth, p5.windowHeight)
       p5.colorMode(p5.HSB, 255)
-      cols = p5.floor(p5.width / scl) + 2
-      rows = p5.floor(p5.height / scl) + 2
+      cols = p5.floor(p5.width / scl)
+      rows = p5.floor(p5.height / scl)
       fr = p5.createP('')
 
       flowField = new Array(cols * rows)
@@ -121,19 +121,33 @@ const PerlinNoise = () => {
     }
 
     p5.draw = () => {
+      let dTheta = p5.TWO_PI / cols
+      let dPhi = p5.TWO_PI / rows
+      let r = 10
+      let R = 30
+
       let yoff = 0
       for (let y = 0; y < rows; y++) {
         let xoff = 0
+        let phi = dPhi * y
         for (let x = 0; x < cols; x++) {
-          let index = x + y * cols
-          let angle = p5.noise(xoff % p5.width, yoff % p5.height, zoff) * p5.TWO_PI * 2
+          let theta = dTheta * x
+
+          // calculate 3d coords based on toros
+          let sampleX = (R + r * p5.cos(phi)) * p5.cos(theta)
+          let sampleY = (R + r * p5.cos(phi)) * p5.sin(theta)
+          let sampleZ = r * p5.sin(phi)
+          
+          // sample Perlin noise using 3d coords
+          let noiseValue = p5.noise(sampleX, sampleY, sampleZ)
+          let angle = noiseValue * p5.TWO_PI * 4
           let v = p5.createVector(p5.cos(angle), p5.sin(angle))
+          let index = x + y * cols
           flowField[index] = v
           v.setMag(2)
-          xoff += inc
-
+          
           // Uncomment to see the flow field vectors
-        
+          
           // p5.stroke(0, 50)
           // p5.strokeWeight(1)
           // p5.push()
@@ -142,9 +156,9 @@ const PerlinNoise = () => {
           // p5.line(0, 0, scl, 0)
           // p5.pop()
           
+          xoff += inc
         }
         yoff += inc
-        zoff += 0
       }
 
       for (var i = 0; i < particles.length; i++) {
