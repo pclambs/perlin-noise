@@ -11,37 +11,6 @@ const PerlinNoise = () => {
     let zoff = 0
     let fr
     
-    class Grid {
-      constructor(cols, rows, scl) {
-        this.cols = cols;
-        this.rows = rows;
-        this.scl = scl;
-        this.cells = new Array(cols * rows).fill(0) // Initialize cells with 0 particles in each
-      }
-    
-      addParticle(x, y) {
-        let col = Math.floor(x / this.scl)
-        let row = Math.floor(y / this.scl)
-        let index = col + row * this.cols
-        if (index >= 0 && index < this.cells.length) {
-          this.cells[index] += 1 // Increment the count for the cell
-        }
-      }
-    
-      reset() {
-        this.cells.fill(0) // Reset all cells to 0 particles
-      }
-
-      checkThreshold(threshold) {
-        // Check if any cell exceeds the threshold
-        for (let i = 0; i < this.cells.length; i++) {
-          if (this.cells[i] > threshold) {
-            return true
-          }
-        }
-        return false
-      }
-    }
     class Particle {
       constructor(p5) {
         this.p5 = p5
@@ -135,7 +104,6 @@ const PerlinNoise = () => {
     
     const particles = []
     let flowField = []
-    let grid
 
     p5.setup = () => {
       p5.createCanvas(p5.windowWidth, p5.windowHeight)
@@ -143,28 +111,25 @@ const PerlinNoise = () => {
       cols = p5.floor(p5.width / scl) + 2
       rows = p5.floor(p5.height / scl) + 2
       fr = p5.createP('')
-      grid = new Grid(cols, rows, scl)
 
       flowField = new Array(cols * rows)
 
-      for (let i = 0; i < 8000; i++) { // Number of particles
+      for (let i = 0; i < 10000; i++) {
         particles.push(new Particle(p5))
       }
       p5.background(10)
     }
 
     p5.draw = () => {
-      grid.reset()
-
       let yoff = 0
       for (let y = 0; y < rows; y++) {
         let xoff = 0
         for (let x = 0; x < cols; x++) {
           let index = x + y * cols
-          let angle = p5.noise(xoff, yoff, zoff) * p5.TWO_PI * 2
+          let angle = p5.noise(xoff % p5.width, yoff % p5.height, zoff) * p5.TWO_PI * 2
           let v = p5.createVector(p5.cos(angle), p5.sin(angle))
           flowField[index] = v
-          v.setMag(1)
+          v.setMag(2)
           xoff += inc
 
           // Uncomment to see the flow field vectors
@@ -183,21 +148,10 @@ const PerlinNoise = () => {
       }
 
       for (var i = 0; i < particles.length; i++) {
-        let particle = particles[i]
-
-        particle.follow(flowField)
-        particle.update()
-        particle.edges()
-        particle.show()
-
-        grid.addParticle(particle.pos.x, particle.pos.y)
-      }
-
-      let threshold = 200 // Number of particles in a cell to trigger a reset
-      if (grid.checkThreshold(threshold)) {
-        // p5.background(10)
-        p5.noiseSeed(p5.random(10000))
-
+        particles[i].follow(flowField)
+        particles[i].update()
+        particles[i].edges()
+        particles[i].show()
       }
 
       fr.html(p5.floor(p5.frameRate()))
